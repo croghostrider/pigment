@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preisrechner für Pigmente</title>
+    <style>
+      :root {
+        --primary-color: #3498db;
+        --secondary-color: #2c3e50;
+        --background-gradient: linear-gradient(135deg, #3498db, #ecf0f1);
+        --container-bg: #ffffff;
+        --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        --border-radius: 10px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--background-gradient);
+        color: var(--secondary-color);
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 700px;
+        margin: 40px auto;
+        background: var(--container-bg);
+        padding: 30px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 1.8em;
+      }
+
+      .slider-container {
+        margin-bottom: 30px;
+      }
+
+      .slider-container label {
+        font-size: 1.2em;
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        height: 8px;
+        border-radius: 5px;
+        background: #ddd;
+        outline: none;
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+
+      input[type="range"]::-webkit-slider-thumb:hover {
+        background: var(--secondary-color);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      th,
+      td {
+        padding: 12px 15px;
+        border: 1px solid #ccc;
+        text-align: center;
+      }
+
+      th {
+        background-color: var(--primary-color);
+        color: #fff;
+        font-weight: 600;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f7f7f7;
+      }
+
+      @media (max-width: 600px) {
+        h1 {
+          font-size: 1.5em;
+        }
+
+        th,
+        td {
+          font-size: 0.9em;
+          padding: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Preisrechner für Pigmente</h1>
+      <div class="slider-container">
+        <label for="pigmentSlider"> Menge an Pigment: <span id="pigmentValue">150</span>μg </label>
+        <input type="range" id="pigmentSlider" min="20" max="150" value="100" step="10">
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Anzahl Stück</th>
+            <th>Totalpreis (CHF)</th>
+            <th>Preis pro Stück (CHF)</th>
+          </tr>
+        </thead>
+        <tbody id="priceTable">
+          <!-- Dynamisch generierte Zeilen -->
+        </tbody>
+      </table>
+    </div>
+    <script>
+      const quantities = [1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000, 5000000, 10000000];
+      const pricePerGramMap = {
+        1000: 2080,
+        2500: 17920,
+        5000: 15760,
+        10000: 14330,
+        25000: 13616,
+        50000: 11900,
+        100000: 9220,
+        250000: 7110,
+        500000: 5840,
+        1000000: 4790,
+        5000000: 3050,
+        10000000: 2500
+      };
+      const availablePigment = 125; // Beispiel: 1000 g
+      const pigmentSlider = document.getElementById('pigmentSlider');
+      const pigmentValue = document.getElementById('pigmentValue');
+      const priceTable = document.getElementById('priceTable');
+
+      function updatePrices() {
+        const pigmentAmount = Number(pigmentSlider.value);
+        pigmentValue.textContent = pigmentAmount;
+        priceTable.innerHTML = '';
+        quantities.forEach(qty => {
+          const requiredPigment = ((pigmentAmount / 1000) / 1000) * qty;
+          if (requiredPigment > availablePigment) return;
+          const pricePerGram = pricePerGramMap[qty] || 0;
+          let multiplier = 1;
+          if (pigmentAmount < 100) {
+            multiplier = -0.0125 * pigmentAmount + 2.25;
+          }
+          const pricePerPiece = ((pigmentAmount / 1000) / 1000) * pricePerGram * multiplier;
+          const totalPrice = qty * pricePerPiece;
+          if (totalPrice < 5000) return;
+          const row = document.createElement('tr');
+          const qtyCell = document.createElement('td');
+          qtyCell.textContent = qty.toLocaleString('de-CH');
+          row.appendChild(qtyCell);
+          const totalPriceCell = document.createElement('td');
+          totalPriceCell.textContent = totalPrice.toLocaleString('de-CH', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+          });
+          row.appendChild(totalPriceCell);
+          const pricePerPieceCell = document.createElement('td');
+          pricePerPieceCell.textContent = pricePerPiece.toFixed(2);
+          row.appendChild(pricePerPieceCell);
+          priceTable.appendChild(row);
+        });
+      }
+      pigmentSlider.addEventListener('input', updatePrices);
+      updatePrices();
+    </script>
+  </body>
+</html>
